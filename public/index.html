@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hospital</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:sans-serif;background:#f1f5f9;color:#1e293b}
+  header{background:#1d4ed8;color:#fff;padding:14px 28px;font-size:1.1rem;font-weight:600}
+  nav{background:#fff;border-bottom:1px solid #e2e8f0;display:flex;padding:0 28px}
+  .tab{padding:12px 20px;cursor:pointer;color:#64748b;border-bottom:3px solid transparent;font-size:.9rem;font-weight:500}
+  .tab.active{color:#1d4ed8;border-color:#1d4ed8}
+  main{padding:24px 28px;max-width:1000px;margin:auto}
+  .page{display:none}.page.active{display:block}
+  .card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .card h3{font-size:.8rem;text-transform:uppercase;color:#94a3b8;letter-spacing:.06em;margin-bottom:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+  .f{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}
+  .f label{font-size:.78rem;color:#64748b;font-weight:500}
+  input,select{padding:8px 11px;border:1px solid #e2e8f0;border-radius:7px;font-size:.88rem;outline:none;width:100%}
+  input:focus,select:focus{border-color:#1d4ed8}
+  .btn{padding:8px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.88rem;font-weight:500;white-space:nowrap}
+  .add{background:#1d4ed8;color:#fff;align-self:flex-end}.add:hover{background:#1e40af}
+  .del{background:#fee2e2;color:#ef4444;padding:5px 12px;font-size:.8rem}.del:hover{background:#ef4444;color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:.87rem}
+  th{padding:9px 12px;background:#f8fafc;color:#64748b;text-align:left;font-size:.76rem;text-transform:uppercase;border-bottom:1px solid #e2e8f0}
+  td{padding:10px 12px;border-bottom:1px solid #f1f5f9}
+  tr:last-child td{border:none}
+  tr:hover td{background:#f8fafc}
+  .badge{padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600}
+  .Scheduled{background:#dbeafe;color:#1d4ed8}
+  .Completed{background:#dcfce7;color:#15803d}
+  .Cancelled{background:#fee2e2;color:#b91c1c}
+  .Paid{background:#dcfce7;color:#15803d}
+  .Unpaid{background:#fef9c3;color:#92400e}
+  #toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;color:#fff;font-size:.88rem;opacity:0;transition:.3s;pointer-events:none}
+  #toast.show{opacity:1}.ok{background:#22c55e}.err{background:#ef4444}
+</style>
+</head>
+<body>
+
+<header>🏥 Hospital Management System</header>
+<nav>
+  <div class="tab active" onclick="show('patients',this)">Patients</div>
+  <div class="tab" onclick="show('doctors',this)">Doctors</div>
+  <div class="tab" onclick="show('appointments',this)">Appointments</div>
+  <div class="tab" onclick="show('rooms',this)">Rooms</div>
+  <div class="tab" onclick="show('bills',this)">Bills</div>
+</nav>
+
+<main>
+
+  <!-- PATIENTS -->
+  <div id="patients" class="page active">
+    <div class="card">
+      <h3>Add Patient</h3>
+      <div class="row">
+        <div class="f"><label>Name</label><input id="pn" placeholder="Madhav"></div>
+        <div class="f"><label>Age</label><input id="pa" type="number" placeholder="25"></div>
+        <div class="f"><label>Gender</label><select id="pg"><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div class="f"><label>Phone</label><input id="pp" placeholder="9876543210" maxlength="10"></div>
+        <div class="f"><label>Blood Group</label>
+          <select id="pb"><option value="">--</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+        </div>
+        <button class="btn add" onclick="addPatient()">+ Add</button>
+      </div>
+    </div>
+    <div class="card"><h3>All Patients</h3>
+      <table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Blood</th><th></th></tr></thead>
+      <tbody id="ptbl"></tbody></table>
+    </div>
+  </div>
+
+  <!-- DOCTORS -->
+  <div id="doctors" class="page">
+    <div class="card">
+      <h3>Add Doctor</h3>
+      <div class="row">
+        <div class="f"><label>Name</label><input id="dn" placeholder="Dr. Smith"></div>
+        <div class="f"><label>Specialty</label><input id="ds" placeholder="Cardiology"></div>
+        <div class="f"><label>Phone</label><input id="dp" placeholder="9876543210" maxlength="10"></div>
+        <div class="f"><label>Email</label><input id="de" placeholder="dr@hospital.com"></div>
+        <button class="btn add" onclick="addDoctor()">+ Add</button>
+      </div>
+    </div>
+    <div class="card"><h3>All Doctors</h3>
+      <table><thead><tr><th>ID</th><th>Name</th><th>Specialty</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+      <tbody id="dtbl"></tbody></table>
+    </div>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div id="appointments" class="page">
+    <div class="card">
+      <h3>Book Appointment</h3>
+      <div class="row">
+        <div class="f"><label>Patient</label><select id="apt"></select></div>
+        <div class="f"><label>Doctor</label><select id="adc"></select></div>
+        <div class="f"><label>Date</label><input id="adt" type="date"></div>
+        <div class="f"><label>Reason</label><input id="ar" placeholder="Reason"></div>
+        <button class="btn add" onclick="addAppt()">+ Book</button>
+      </div>
+    </div>
+    <div class="card"><h3>All Appointments</h3>
+      <table><thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Reason</th><th>Status</th><th></th></tr></thead>
+      <tbody id="atbl"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ROOMS -->
+  <div id="rooms" class="page">
+    <div class="card">
+      <h3>Add Room</h3>
+      <div class="row">
+        <div class="f"><label>Room No</label><input id="rn" placeholder="101"></div>
+        <div class="f"><label>Type</label><select id="rt"><option>General</option><option>ICU</option><option>Private</option></select></div>
+        <button class="btn add" onclick="addRoom()">+ Add</button>
+      </div>
+    </div>
+    <div class="card"><h3>All Rooms</h3>
+      <table><thead><tr><th>ID</th><th>Room No</th><th>Type</th><th>Status</th><th></th></tr></thead>
+      <tbody id="rtbl"></tbody></table>
+    </div>
+  </div>
+
+  <!-- BILLS -->
+  <div id="bills" class="page">
+    <div class="card">
+      <h3>Add Bill</h3>
+      <div class="row">
+        <div class="f"><label>Patient</label><select id="bpt"></select></div>
+        <div class="f"><label>Amount (₹)</label><input id="bam" type="number" placeholder="500"></div>
+        <button class="btn add" onclick="addBill()">+ Add</button>
+      </div>
+    </div>
+    <div class="card"><h3>All Bills</h3>
+      <table><thead><tr><th>ID</th><th>Patient</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr></thead>
+      <tbody id="btbl"></tbody></table>
+    </div>
+  </div>
+
+</main>
+<div id="toast"></div>
+
+<script>
+  const A='http://localhost:3000';
+  const $=i=>document.getElementById(i);
+  const v=i=>$(i).value.trim();
+  
+  function toast(msg,type='ok'){
+    const t=$('toast');t.textContent=msg;t.className=`show ${type}`;
+    setTimeout(()=>t.className='',2800);
+  }
+  
+  async function api(url,method='GET',body=null){
+    try {
+      const r=await fetch(A+url,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):null});
+      const d=await r.json();
+      if(d.error){toast('❌ '+d.error,'err');return null;}
+      return d;
+    } catch(e) { toast('❌ Server error','err'); return null; }
+  }
+  
+  function show(tab,el){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    $(tab).classList.add('active');el.classList.add('active');
+    if(tab==='patients') loadP();
+    if(tab==='doctors') loadD();
+    if(tab==='appointments') loadA();
+    if(tab==='rooms') loadR();
+    if(tab==='bills') loadB();
+  }
+  
+  async function del(url,fn){
+    if(!confirm('Delete?'))return;
+    const r=await api(url,'DELETE');
+    if(r!==null){toast('✅ Deleted');fn();}
+  }
+  
+  // ── PATIENTS ──
+  async function loadP(){
+    const d=await api('/patients');
+    if(!d) return;
+    $('ptbl').innerHTML = d.length
+      ? d.map(p=>`<tr>
+          <td>${p.id}</td><td><b>${p.name}</b></td><td>${p.age}</td>
+          <td>${p.gender}</td><td>${p.phone}</td><td>${p.blood_grp||'—'}</td>
+          <td><button class="btn del" onclick="del('/patients/${p.id}',loadP)">Del</button></td>
+        </tr>`).join('')
+      : `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">No patients yet</td></tr>`;
+  }
+  
+  async function addPatient(){
+    const name=v('pn'),age=v('pa'),gender=v('pg'),phone=v('pp'),blood_grp=v('pb');
+    if(!name||!age||!phone) return toast('❌ Name, age, phone required','err');
+    if(!/^\d{10}$/.test(phone)) return toast('❌ Phone must be 10 digits','err');
+    const r=await api('/patients','POST',{name,age,gender,phone,blood_grp:blood_grp||null});
+    if(r!==null){toast('✅ Patient added');['pn','pa','pp'].forEach(i=>$(i).value='');loadP();}
+  }
+  
+  // ── DOCTORS ──
+  async function loadD(){
+    const d=await api('/doctors');
+    if(!d) return;
+    $('dtbl').innerHTML = d.length
+      ? d.map(doc=>`<tr>
+          <td>${doc.id}</td><td><b>${doc.name}</b></td>
+          <td>${doc.specialty}</td><td>${doc.phone}</td><td>${doc.email||'—'}</td>
+          <td><button class="btn del" onclick="del('/doctors/${doc.id}',loadD)">Del</button></td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px">No doctors yet</td></tr>`;
+  }
+  
+  async function addDoctor(){
+    const name=v('dn'),specialty=v('ds'),phone=v('dp'),email=v('de');
+    if(!name||!specialty||!phone) return toast('❌ Name, specialty, phone required','err');
+    if(!/^\d{10}$/.test(phone)) return toast('❌ Phone must be 10 digits','err');
+    const r=await api('/doctors','POST',{name,specialty,phone,email:email||null});
+    if(r!==null){toast('✅ Doctor added');['dn','ds','dp','de'].forEach(i=>$(i).value='');loadD();}
+  }
+  
+  // ── APPOINTMENTS ──
+  async function loadA(){
+    const [apps,pts,drs] = await Promise.all([
+      api('/appointments'), api('/patients'), api('/doctors')
+    ]);
+    if(!apps||!pts||!drs) return;
+  
+    $('apt').innerHTML = pts.length
+      ? pts.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')
+      : '<option>No patients</option>';
+  
+    $('adc').innerHTML = drs.length
+      ? drs.map(d=>`<option value="${d.id}">${d.name} (${d.specialty})</option>`).join('')
+      : '<option>No doctors</option>';
+  
+    $('atbl').innerHTML = apps.length
+      ? apps.map(a=>`<tr>
+          <td>${a.id}</td><td>${a.patient}</td><td>${a.doctor}</td>
+          <td>${a.date?.split('T')[0]}</td><td>${a.reason}</td>
+          <td><span class="badge ${a.status}">${a.status}</span></td>
+          <td style="display:flex;gap:6px">
+            <select onchange="api('/appointments/${a.id}','PATCH',{status:this.value}).then(r=>r!==null&&(toast('✅ Updated'),loadA()))"
+              style="font-size:.8rem;padding:4px;border-radius:6px;border:1px solid #e2e8f0">
+              <option ${a.status==='Scheduled'?'selected':''}>Scheduled</option>
+              <option ${a.status==='Completed'?'selected':''}>Completed</option>
+              <option ${a.status==='Cancelled'?'selected':''}>Cancelled</option>
+            </select>
+            <button class="btn del" onclick="del('/appointments/${a.id}',loadA)">Del</button>
+          </td>
+        </tr>`).join('')
+      : `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">No appointments yet</td></tr>`;
+  }
+  
+  async function addAppt(){
+    const patient_id=v('apt'),doctor_id=v('adc'),date=v('adt'),reason=v('ar');
+    if(!date||!reason) return toast('❌ Date & reason required','err');
+    const r=await api('/appointments','POST',{patient_id,doctor_id,date,reason});
+    if(r!==null){toast('✅ Appointment booked');$('adt').value='';$('ar').value='';loadA();}
+  }
+  
+  // ── ROOMS ──
+  async function loadR(){
+    const d=await api('/rooms');
+    if(!d) return;
+    $('rtbl').innerHTML = d.length
+      ? d.map(r=>`<tr>
+          <td>${r.id}</td><td>${r.number}</td><td>${r.type}</td>
+          <td><span class="badge ${r.status==='Available'?'Completed':'Cancelled'}">${r.status}</span></td>
+          <td><button class="btn del" onclick="del('/rooms/${r.id}',loadR)">Del</button></td>
+        </tr>`).join('')
+      : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">No rooms yet</td></tr>`;
+  }
+  
+  async function addRoom(){
+    const number=v('rn'),type=v('rt');
+    if(!number) return toast('❌ Room number required','err');
+    const r=await api('/rooms','POST',{number,type});
+    if(r!==null){toast('✅ Room added');$('rn').value='';loadR();}
+  }
+  
+  // ── BILLS ──
+  async function loadB(){
+    const [bills,pts]=await Promise.all([api('/bills'),api('/patients')]);
+    if(!bills||!pts) return;
+  
+    $('bpt').innerHTML = pts.length
+      ? pts.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')
+      : '<option>No patients</option>';
+  
+    $('btbl').innerHTML = bills.length
+      ? bills.map(b=>`<tr>
+          <td>${b.id}</td><td>${b.patient}</td><td>₹${b.amount}</td>
+          <td>${b.date?.split('T')[0]}</td>
+          <td><span class="badge ${b.paid}">${b.paid}</span></td>
+          <td style="display:flex;gap:6px">
+            <button class="btn add" style="font-size:.78rem;padding:4px 10px"
+              onclick="api('/bills/${b.id}','PATCH',{paid:'Paid'}).then(r=>r!==null&&(toast('✅ Marked paid'),loadB()))">
+              Mark Paid
+            </button>
+            <button class="btn del" onclick="del('/bills/${b.id}',loadB)">Del</button>
+          </td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px">No bills yet</td></tr>`;
+  }
+  
+  async function addBill(){
+    const patient_id=v('bpt'),amount=v('bam');
+    if(!amount||amount<=0) return toast('❌ Valid amount required','err');
+    const r=await api('/bills','POST',{patient_id,amount});
+    if(r!==null){toast('✅ Bill added');$('bam').value='';loadB();}
+  }
+  
+  // Load patients on start
+  loadP();
+  </script>
+</body>
+</html>
